@@ -1,4 +1,4 @@
-package cloud.autotests.tests._other_patterns.super_difficult_component.extentions;
+package cloud.autotests.extentions;
 
 import com.codeborne.selenide.commands.Commands;
 import com.codeborne.selenide.impl.ElementFinder;
