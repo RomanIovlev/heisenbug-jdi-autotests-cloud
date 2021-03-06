@@ -1,18 +1,18 @@
 package cloud.autotests.tests.web;
 
 import cloud.autotests.tests.TestBase;
+import cloud.autotests.tests.entities.LoginData;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import static cloud.autotests.helpers.DriverHelper.byTestId;
-import static cloud.autotests.tests.TestData.DEFAULT_LOGIN;
-import static cloud.autotests.tests.TestData.DEFAULT_PASSWORD;
-import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
-import static com.codeborne.selenide.Selenide.*;
+import static cloud.autotests.tests.entities.Users.DEFAULT_USER;
+import static com.epam.jdi.light.elements.base.Conditions.*;
+import static com.epam.jdi.light.elements.composite.WebPage.openUrl;
+import static com.epam.jdi.light.elements.init.JDITalk.form;
+import static com.epam.jdi.light.elements.init.UIFactory.*;
 import static io.qameta.allure.Allure.step;
 
 
@@ -26,25 +26,24 @@ class LoginTests extends TestBase {
     @DisplayName("Successful login in Web app. Testid-strategy")
     void successfulLoginTest() {
         step("Go to login page", ()-> {
-            open("http://autotests.cloud:3000/");
-            $(byTestId("Header label")).shouldHave(text("Not authorized"));
+            openUrl("http://autotests.cloud:3000/");
+            $("Header label").should(have(text("Not authorized")));
         });
 
         step("Fill the authorization form", ()-> {
-            $(byTestId("Authorization form")).shouldBe(visible);
-            $(byTestId("Login input")).setValue(DEFAULT_LOGIN);
-            $(byTestId("Password input")).setValue(DEFAULT_PASSWORD);
-            $(byTestId("Remember me checkbox")).click();
-            $(byTestId("Login button")).click();
+            $("Authorization form").shouldBe(visible);
+            form(LoginData.class).fill(DEFAULT_USER);
+            $("Remember me checkbox").check();
+            $("Login button").click();
         });
 
         step("Verify successful authorization", ()-> {
-            $(byTestId("Authorization form")).shouldNot(exist);
-            $(byTestId("Header label")).shouldHave(text("Hello, " + DEFAULT_LOGIN + "!"));
-            $$(byTestId("Private content"))
-                    .shouldHaveSize(2)
-                    .shouldHave(texts("Here is your private content #1",
-                            "and private content #2"));
+            $("Authorization form").is().disappear();
+            $("Header label").has().text("Hello, " + DEFAULT_USER.loginInput + "!");
+            $$("Private content")
+                .has().size(2)
+                .and().values("Here is your private content #1",
+                            "and private content #2");
         });
     }
 }
