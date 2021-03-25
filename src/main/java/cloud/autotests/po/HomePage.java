@@ -1,7 +1,6 @@
 package cloud.autotests.po;
 
 import com.epam.jdi.light.elements.complex.JList;
-import com.epam.jdi.light.elements.pageobjects.annotations.locators.UI;
 import com.epam.jdi.light.ui.html.elements.common.Text;
 import io.qameta.allure.Step;
 
@@ -9,7 +8,7 @@ import static cloud.autotests.QASite.loginPage;
 import static cloud.autotests.entities.Users.DEFAULT_USER;
 
 public class HomePage extends BasePage {
-    @UI("Private content") JList<Text> privateContent;
+    JList<Text> privateContent;
 
     @Step("Verify successful authorization")
     public HomePage verifySuccessfulAuthorization() {
