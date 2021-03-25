@@ -2,58 +2,33 @@ package cloud.autotests.helpers;
 
 import cloud.autotests.drivers.CustomMobileDriver;
 import cloud.autotests.drivers.CustomWebDriver;
-import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.Selenide;
-import io.appium.java_client.MobileBy;
-import io.qameta.allure.selenide.AllureSelenide;
-import org.openqa.selenium.By;
-import org.openqa.selenium.remote.RemoteWebDriver;
+import com.epam.jdi.light.elements.common.UIElement;
 
-import static cloud.autotests.helpers.EnvironmentHelper.*;
-import static com.codeborne.selenide.Selectors.by;
-import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
-import static com.codeborne.selenide.logevents.SelenideLogger.addListener;
-import static org.openqa.selenium.logging.LogType.BROWSER;
+import static cloud.autotests.helpers.EnvironmentHelper.platform;
+import static com.epam.jdi.light.driver.WebDriverFactory.useDriver;
+import static com.epam.jdi.light.elements.init.JDITalk.NAME_TO_ELEMENT;
+import static com.epam.jdi.light.settings.JDISettings.ELEMENT;
+import static com.epam.jdi.tools.StringUtils.splitFirstCapital;
+import static org.openqa.selenium.By.cssSelector;
 
 
 public class DriverHelper {
 
-    public static void configureSelenide() {
-        addListener("AllureSelenide", new AllureSelenide().screenshots(true).savePageSource(true));
-
-        if (isWeb) {
-            Configuration.browser = CustomWebDriver.class.getName();
-            Configuration.baseUrl = webUrl;
-        } else if (isAndroid || isIos) {
-            Configuration.browser = CustomMobileDriver.class.getName();
-            Configuration.startMaximized = false;
-            Configuration.browserSize = null;
+    public static void configureJDI() {
+        switch (platform) {
+            case "web":
+                useDriver(CustomWebDriver::WebDriver);
+                break;
+            case "ios":
+                useDriver(CustomMobileDriver::IOSDriver);
+                break;
+            case "android":
+                useDriver(CustomMobileDriver::AndroidDriver);
+                break;
+            default:
+                throw new RuntimeException("Unknown driver type");
         }
-        Configuration.timeout = 10000;
+        NAME_TO_ELEMENT = name -> new UIElement(cssSelector("[data-testid='"+name+"']")).setName(name);
+        ELEMENT.name = field -> splitFirstCapital(field.getName());
     }
-
-    public static By byTestId(String testId) {
-        if(isWeb) {
-            return by("data-testid",  testId);
-        } else if (isAndroid) {
-            return MobileBy.xpath("//*[@content-desc='" + testId + "']");
-        } else if (isIos) {
-            return MobileBy.id(testId);
-        } else { // todo isDesktop
-            return by("some-desktop-attribute-name",  testId);
-        }
-    }
-
-    public static String getSessionId(){
-        return ((RemoteWebDriver) getWebDriver()).getSessionId().toString().replace("selenoid","");
-    }
-
-    public static String getConsoleLogs() {
-        return String.join("\n", Selenide.getWebDriverLogs(BROWSER));
-    }
-
-//    public static String getNetworkLogs() {
-//        todo https://ru.selenide.org/2019/12/18/advent-calendar-network-logs-with-proxy/
-//    }
-
 }

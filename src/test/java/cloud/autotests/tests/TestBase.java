@@ -1,35 +1,30 @@
 package cloud.autotests.tests;
 
-import org.junit.jupiter.api.*;
+import io.qameta.allure.Step;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
 
-import static cloud.autotests.helpers.AttachmentsHelper.*;
-import static cloud.autotests.helpers.BrowserstackHelper.getBSPublicLink;
-import static cloud.autotests.helpers.DriverHelper.*;
-import static cloud.autotests.helpers.EnvironmentHelper.*;
-import static com.codeborne.selenide.WebDriverRunner.closeWebDriver;
-
+import static cloud.autotests.helpers.DriverHelper.configureJDI;
+import static com.epam.jdi.light.driver.WebDriverUtils.killAllSeleniumDrivers;
+import static com.epam.jdi.light.logger.AllureLogger.infoStep;
 
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 public class TestBase {
 
     @BeforeAll
+    @Step("Tests setup")
     public static void beforeAll() {
-        configureSelenide();
+        configureJDI();
     }
 
     @AfterEach
-    public void addAttachments(){
-        String sessionId = getSessionId();
-
-        attachScreenshot("Last screenshot");
-        attachPageSource();
-//        attachNetwork(); // todo
-        if (isWeb) attachAsText("Browser console logs", getConsoleLogs());
-        if (isIos || isAndroid) attachAsText("Browserstack build link", getBSPublicLink(sessionId));
-
-        closeWebDriver();
-
-        if (isVideoOn) attachVideo(sessionId); // in browserstack video url generates after driver close
+    public void afterEach() {
+        infoStep();
     }
-
+    @AfterAll
+    public static void tearDown() {
+        killAllSeleniumDrivers();
+    }
 }

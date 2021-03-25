@@ -1,6 +1,5 @@
 package cloud.autotests.drivers;
 
-import com.codeborne.selenide.WebDriverProvider;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -20,31 +19,26 @@ import java.util.logging.Level;
 
 import static cloud.autotests.helpers.EnvironmentHelper.*;
 
-
-public class CustomWebDriver implements WebDriverProvider {
-    @Override
-    public WebDriver createDriver(DesiredCapabilities capabilities) {
+public class CustomWebDriver {
+    public static WebDriver WebDriver() {
         LoggingPreferences logPrefs = new LoggingPreferences();
         logPrefs.enable(LogType.PERFORMANCE, Level.ALL);
 
+        DesiredCapabilities capabilities = new DesiredCapabilities();
         capabilities.setBrowserName(browser);
         capabilities.setCapability(CapabilityType.LOGGING_PREFS, logPrefs);
-        capabilities.setCapability("enableVNC", true);
         capabilities.setCapability("enableVideo", isVideoOn);
-        capabilities.setCapability("videoFrameRate", 24);
 
         // todo implement for other drivers - opera, firefox, safari
         capabilities.setCapability(ChromeOptions.CAPABILITY, getChromeOptions());
         WebDriverManager.chromedriver().setup();
 
-        if(isRemoteDriver) {
-            return getRemoteWebDriver(capabilities);
-        } else {
-            return getLocalChromeDriver(capabilities);
-        }
+        return isRemoteDriver
+            ? getRemoteWebDriver(capabilities)
+            : getLocalChromeDriver(capabilities);
     }
 
-    private ChromeOptions getChromeOptions() {
+    private static ChromeOptions getChromeOptions() {
         ChromeOptions chromeOptions = new ChromeOptions();
 
         if (isWebMobile) {
@@ -53,43 +47,24 @@ public class CustomWebDriver implements WebDriverProvider {
             chromeOptions.setExperimentalOption("mobileEmulation", mobileDevice);
         }
         chromeOptions.addArguments("--window-size=" + screenResolution);
-        chromeOptions.addArguments("--no-sandbox");
-        chromeOptions.addArguments("--disable-notifications");
-        chromeOptions.addArguments("--disable-infobars");
         if(isHeadless) chromeOptions.addArguments("headless");
 
         return chromeOptions;
     }
 
-//    private OperaOptions getOperaOptions() { // todo
-//        ...
-//    }
-
-//    private FirefoxOptions getFirefoxOptions() { // todo
-//        ...
-//    }
-
-//    private SafariOptions getSafariOptions() { // todo
-//        ...
-//    }
-
-//    private InternetExplorerOptions getInternetExplorerOptions() { // not todo
-//        ...
-//    }
-
     @SuppressWarnings("deprecation")
-    private WebDriver getLocalChromeDriver(DesiredCapabilities capabilities) {
+    private static WebDriver getLocalChromeDriver(DesiredCapabilities capabilities) {
         return new ChromeDriver(capabilities);
     }
 
-    private WebDriver getRemoteWebDriver(DesiredCapabilities capabilities) {
-        RemoteWebDriver remoteWebDriver = new RemoteWebDriver(getRemoteWebdriverUrl(), capabilities);
+    private static WebDriver getRemoteWebDriver(DesiredCapabilities capabilities) {
+        RemoteWebDriver remoteWebDriver = new RemoteWebDriver(getRemoteWebDriverUrl(), capabilities);
         remoteWebDriver.setFileDetector(new LocalFileDetector());
 
         return remoteWebDriver;
     }
 
-    private URL getRemoteWebdriverUrl() {
+    private static URL getRemoteWebDriverUrl() {
         try {
             return new URL(remoteDriverUrl);
         } catch (MalformedURLException e) {
